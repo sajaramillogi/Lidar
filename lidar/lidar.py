@@ -31,7 +31,9 @@ shrunkCmap3.set_over(cm.jet(1000))
 # shrunkCmap.set_under(cm.jet(0))
 # shrunkCmap.set_over(cm.jet(1000))
 
+# Crear la clase Lidar que hereda la clase PlotBook que Julian hizo para crear graficas
 class Lidar(PlotBook):
+
     """
     Class for manipulating SIATA's Scanning Lidar
 
@@ -41,7 +43,7 @@ class Lidar(PlotBook):
         ascii       = bolean - if False read binary files
 
     """
-
+    # lidasPropertirs, supongo que es necesaria definirlar de entrada para cumplir con los argumentos de la clase heredada PlotBook
     lidarProperties   = {
                 'raw': {'analog':'',
                     'photon':'',
@@ -117,12 +119,12 @@ class Lidar(PlotBook):
     latitud = 6.201585
     longitud = -75.578584
     altitud = 1.540
-    vAn = 0.525
+    vAn = 0.525 # Constantes de calibración de la polarización
     vPc = 0.534
 
     def __init__(self, fechaI=None, fechaF=None, ascii=False, scan='3D', output='P(r)', **kwargs):
 
-
+	## Definicion de variables de inicializacion
         self.ascii      = ascii
         self.scan       = scan
         self.output     = output
@@ -132,16 +134,20 @@ class Lidar(PlotBook):
                             ) - dt.timedelta(hours=1)
                         ).strftime('%Y-%m-%d %H:%M') if fechaF is None else fechaF #
 
-        self.degreeVariable    = 'Zenith' if self.scan in ['FixedPoint','3D'] else self.scan
-        self.degreeFixed       = 'Azimuth'  if self.scan in ['FixedPoint','3D','Zenith'] else 'Zenith'
+	## No se quejesto
+        self.degreeVariable    = 'Zenith'   if self.scan in ['FixedPoint','3D'] else self.scan
+        self.degreeFixed       = 'Azimuth'  if self.scan in ['FixedPoint','3D','Zenith'] else 'Zenith' ## Por que es Azimuth incluso cuando self.scan es zenith?
         # self.kwargs = self.plotBookArgs.copy()
 
+	## Si en PlotBook hay kwargs que ya estan en Lidar, los elimina de los kwargs de Lidar y los asigna a PB
         for kw in self.plotBookArgs.keys():
             if kw in kwargs.keys():
                 self.plotBookArgs[kw] = kwargs.pop(kw)
         # self.kwargs             = kwargs
 
+	## USA FUNCION read (lee archivos y crea output con los datos concatenados)
         self.read(output=self.output)
+	## Crea la carpeta Figuras y si ya existe borra todo lo que tenga adentro
         if not os.path.exists('Figuras/'):
             os.makedirs('Figuras/')
         else:
@@ -151,8 +157,7 @@ class Lidar(PlotBook):
             os.makedirs('Datos/')
 
 
-
-
+    ##### FUNCIONES DE LECTURA ######
 
     def read_file(self,filename,offset=None):
         """Function for reading Lidar files
@@ -179,6 +184,7 @@ class Lidar(PlotBook):
         description = {}
 
         # ValorLocationStr = lineaLocationArray[0]
+	## Aca corrige el huso horario. donde se corrigen los 9 minutos de diferencia?
         description ['Fecha'] = dt.datetime.strptime (lineaLocationArray[1] + " " + lineaLocationArray[2], "%d/%m/%Y %H:%M:%S") - dt.timedelta(hours=5)
         description ['Fecha_fin'] = dt.datetime.strptime (lineaLocationArray[3] + " " + lineaLocationArray[4], "%d/%m/%Y %H:%M:%S") - dt.timedelta(hours=5)
         # valorHeight = float (lineaLocationArray[5])
@@ -187,6 +193,7 @@ class Lidar(PlotBook):
         description ['Zenith'] = int( float (lineaLocationArray[8]) )
         description ['Azimuth'] = (270 -  int( float( lineaLocationArray[9]) ))%360
 
+	## Corrige el offset de 180 grados
         if (self.scan == '3D') & (offset is not None) & (description ['Azimuth'] != offset): #(np.abs(description ['Azimuth'] - offset) == 180
             description ['Azimuth'] += 180
             description ['Zenith'] += 180
@@ -414,7 +421,7 @@ class Lidar(PlotBook):
 
         kindFolder = {'3D':'3D','Zenith':'Z','Azimuth':'A','FixedPoint':'RM'}
 
-        print "{}\n Reading Files\n{}".format('-'*50,'-'*50)
+        print "{}\n Reading Filessssssss\n{}".format('-'*50,'-'*50)
         # dates = pd.date_range('20180624','20180717',freq='d')
         dates = pd.date_range(self.fechaI,self.fechaF,freq='d')
         print dates
@@ -422,25 +429,30 @@ class Lidar(PlotBook):
         self.datos       = {}
         self.datosInfo  = pd.DataFrame()
 
+	## Para cada dia, leer los archivos
         for d in dates:
         # d = dates[0]
             print "{}\n{}".format('-'*50,d.strftime('%Y-%m-%d'))
             os.system('rm -r Datos/*')
-            os.system('scp -rq {}@192.168.1.62:/mnt/ALMACENAMIENTO/LIDAR/{}/{}/* Datos/'.format(self.plotBookArgs['user'], 'Scanning_Measurements' if self.scan != 'FixedPoint' else 'Fixed_Point', d.strftime('%Y%m%d')))
+	    ## Copiar los archivos desde ¿Miel? a la carpeta de Datos en ¿Gomita o var?
+            os.system('scp -rq {}@192.168.1.165:/mnt/ALMACENAMIENTO/LIDAR/{}/{}/* Datos/'.format(self.plotBookArgs['user'], 'Scanning_Measurements' if self.scan != 'FixedPoint' else 'Fixed_Point', d.strftime('%Y%m%d')))
 
-            folders = glob.glob('Datos/{}*'.format( kindFolder[self.scan]))
-            if len(folders) > 0 :
+            folders = glob.glob('Datos/{}*'.format( kindFolder[self.scan])) ## USA LA FUNCION kindFolder
+
+            if len(folders) > 0 : ## mm esto deberia dar false en fixed point, solo true en scann
                 # os.system('ssh jhernandezv@siata.gov.co "mkdir /var/www/jhernandezv/Lidar/{}/{}/"'.format(self.scan, d.strftime('%Y%m%d')))
 
+		## Para cada subcarpeta
                 for folder in folders:
                     archivos   = glob.glob('{}{}*'.format(folder, '/RM' if self.scan != 'FixedPoint' else ''))
                     # print folder
-                    df3, df4 = self.read_folder(archivos, inplace=False)
+                    df3, df4 = self.read_folder(archivos, inplace=False) ## USA LA FUNCION read_folder
                     self.datos[ df4.index[0].strftime('%Y-%m-%d %H:%M:%S') ] = df3.stack([0,1])
 
                     df4.loc[df4.index[0], 'Fecha_fin'] = df4.index[-1]
                     self.datosInfo = self.datosInfo.append(df4.iloc[0])
 
+	## Concatenar todos los datos o anuncia error si no hay nada qué concatenar
         try:
             self.datos          = pd.concat(self.datos,axis=1).T.astype(np.float64)
         except:
@@ -456,8 +468,8 @@ class Lidar(PlotBook):
 
         self.datos      = self.datos[self.fechaI:self.fechaF]
         self.datosInfo  = self.datosInfo[self.fechaI:self.fechaF]
-        self.raw                    = self.datos.copy()
-        self.get_output(**kwargs)
+        self.raw                    = self.datos.copy()  ## Crea self.raw como una copia de self.datos
+        self.get_output(**kwargs) ## USA LA FUNCION get_output
 
 
 
