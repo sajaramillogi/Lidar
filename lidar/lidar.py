@@ -185,8 +185,8 @@ class Lidar(PlotBook):
 
         # ValorLocationStr = lineaLocationArray[0]
 	## Aca corrige el huso horario. donde se corrigen los 9 minutos de diferencia?
-        description ['Fecha'] = dt.datetime.strptime (lineaLocationArray[1] + " " + lineaLocationArray[2], "%d/%m/%Y %H:%M:%S") - dt.timedelta(hours=5)
-        description ['Fecha_fin'] = dt.datetime.strptime (lineaLocationArray[3] + " " + lineaLocationArray[4], "%d/%m/%Y %H:%M:%S") - dt.timedelta(hours=5)
+        description ['Fecha'] = dt.datetime.strptime (lineaLocationArray[1] + " " + lineaLocationArray[2], "%d/%m/%Y %H:%M:%S") - dt.timedelta(hours=5)+dt.timedelta(minutes=9)
+        description ['Fecha_fin'] = dt.datetime.strptime (lineaLocationArray[3] + " " + lineaLocationArray[4], "%d/%m/%Y %H:%M:%S") - dt.timedelta(hours=5)+dt.timedelta(minutes=9)
         # valorHeight = float (lineaLocationArray[5])
         # valorLong = float (lineaLocationArray[6])
         # valorLat = float (lineaLocationArray[7])
