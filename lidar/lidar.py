@@ -421,7 +421,7 @@ class Lidar(PlotBook):
 
         kindFolder = {'3D':'3D','Zenith':'Z','Azimuth':'A','FixedPoint':'RM'}
 
-        print "{}\n Reading Filessssssss\n{}".format('-'*50,'-'*50)
+        print "{}\n Reading FilesSsSsSsS\n{}".format('-'*50,'-'*50)
         # dates = pd.date_range('20180624','20180717',freq='d')
         dates = pd.date_range(self.fechaI,self.fechaF,freq='d')
         print dates
